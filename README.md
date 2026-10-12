@@ -43,6 +43,10 @@ Click the window to dock next to, click the window to move, then press:
 
 Rebind them under **Edit → Shortcuts → Layout Manager**.
 
+To turn them all off, untoggle **Shortcuts** in the Layout Manager toolbar. While they're off, the keys
+go to Unity and other tools as if the shortcuts didn't exist. Your rebinds are kept, and the setting is
+saved per machine.
+
 ## License
 
 GPL-3.0. See [LICENSE](LICENSE).

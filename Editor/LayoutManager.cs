@@ -218,35 +218,54 @@ namespace LayoutManagerTool
         public static EditorWindow TargetFor(EditorWindow moving) => moving == current ? previous : current;
     }
 
+    // Every Layout Manager shortcut lives in this context. Disabled, the context is inactive,
+    // so the keys pass through to Unity and other tools and your rebinds are kept.
+    public class LayoutShortcutContext : IShortcutContext
+    {
+        const string Pref = "LayoutManager.ShortcutsEnabled";
+        static bool enabled = EditorPrefs.GetBool(Pref, true);
+
+        public static bool Enabled
+        {
+            get => enabled;
+            set { enabled = value; EditorPrefs.SetBool(Pref, value); }
+        }
+
+        public bool active => enabled;
+    }
+
+    [InitializeOnLoad]
     public static class LayoutShortcuts
     {
+        static LayoutShortcuts() => ShortcutManager.RegisterContext(new LayoutShortcutContext());
+
         const ShortcutModifiers AS = ShortcutModifiers.Alt | ShortcutModifiers.Shift;
         const ShortcutModifiers CAS = ShortcutModifiers.Action | ShortcutModifiers.Alt | ShortcutModifiers.Shift;
 
-        [Shortcut("Layout Manager/Open", KeyCode.L, AS)]
+        [Shortcut("Layout Manager/Open", typeof(LayoutShortcutContext), KeyCode.L, AS)]
         static void Open() => LayoutManagerWindow.Open();
 
-        [Shortcut("Layout Manager/Dock As Tab Of Previous", KeyCode.Space, AS)]
+        [Shortcut("Layout Manager/Dock As Tab Of Previous", typeof(LayoutShortcutContext), KeyCode.Space, AS)]
         static void Tab() => DockFocused(DockEdge.Tab, false);
-        [Shortcut("Layout Manager/Dock Left Of Previous", KeyCode.LeftArrow, AS)]
+        [Shortcut("Layout Manager/Dock Left Of Previous", typeof(LayoutShortcutContext), KeyCode.LeftArrow, AS)]
         static void Left() => DockFocused(DockEdge.Left, false);
-        [Shortcut("Layout Manager/Dock Right Of Previous", KeyCode.RightArrow, AS)]
+        [Shortcut("Layout Manager/Dock Right Of Previous", typeof(LayoutShortcutContext), KeyCode.RightArrow, AS)]
         static void Right() => DockFocused(DockEdge.Right, false);
-        [Shortcut("Layout Manager/Dock Above Previous", KeyCode.UpArrow, AS)]
+        [Shortcut("Layout Manager/Dock Above Previous", typeof(LayoutShortcutContext), KeyCode.UpArrow, AS)]
         static void Up() => DockFocused(DockEdge.Top, false);
-        [Shortcut("Layout Manager/Dock Below Previous", KeyCode.DownArrow, AS)]
+        [Shortcut("Layout Manager/Dock Below Previous", typeof(LayoutShortcutContext), KeyCode.DownArrow, AS)]
         static void Down() => DockFocused(DockEdge.Bottom, false);
 
-        [Shortcut("Layout Manager/Dock To Window Left Edge", KeyCode.LeftArrow, CAS)]
+        [Shortcut("Layout Manager/Dock To Window Left Edge", typeof(LayoutShortcutContext), KeyCode.LeftArrow, CAS)]
         static void WinLeft() => DockFocused(DockEdge.Left, true);
-        [Shortcut("Layout Manager/Dock To Window Right Edge", KeyCode.RightArrow, CAS)]
+        [Shortcut("Layout Manager/Dock To Window Right Edge", typeof(LayoutShortcutContext), KeyCode.RightArrow, CAS)]
         static void WinRight() => DockFocused(DockEdge.Right, true);
-        [Shortcut("Layout Manager/Dock To Window Top Edge", KeyCode.UpArrow, CAS)]
+        [Shortcut("Layout Manager/Dock To Window Top Edge", typeof(LayoutShortcutContext), KeyCode.UpArrow, CAS)]
         static void WinUp() => DockFocused(DockEdge.Top, true);
-        [Shortcut("Layout Manager/Dock To Window Bottom Edge", KeyCode.DownArrow, CAS)]
+        [Shortcut("Layout Manager/Dock To Window Bottom Edge", typeof(LayoutShortcutContext), KeyCode.DownArrow, CAS)]
         static void WinDown() => DockFocused(DockEdge.Bottom, true);
 
-        [Shortcut("Layout Manager/Gather Floating Windows")]
+        [Shortcut("Layout Manager/Gather Floating Windows", typeof(LayoutShortcutContext))]
         static void Gather() => EditorApplication.delayCall += Docking.GatherFloating;
 
         static void DockFocused(DockEdge edge, bool windowEdge)
@@ -288,6 +307,7 @@ namespace LayoutManagerTool
                     : $"Moving '{picked.titleContent.text}': click a zone (center = tab, edges = split, outer border = window edge). Esc cancels.");
                 GUILayout.FlexibleSpace();
                 if (picked != null && GUILayout.Button("Cancel", EditorStyles.toolbarButton)) picked = null;
+                LayoutShortcutContext.Enabled = GUILayout.Toggle(LayoutShortcutContext.Enabled, "Shortcuts", EditorStyles.toolbarButton);
                 if (GUILayout.Button("Gather Floating", EditorStyles.toolbarButton)) EditorApplication.delayCall += Docking.GatherFloating;
                 if (GUILayout.Button("Shortcuts…", EditorStyles.toolbarButton)) EditorApplication.ExecuteMenuItem("Edit/Shortcuts...");
             }
