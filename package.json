@@ -1,0 +1,9 @@
+{
+  "name": "com.graphicmismatch.layoutmanager",
+  "version": "1.0.0",
+  "displayName": "Layout Manager",
+  "description": "Dock editor windows without drag-and-drop: a visual layout map plus rebindable docking shortcuts. Built for tiling window managers where Unity's drag-to-dock doesn't work.",
+  "unity": "6000.0",
+  "license": "GPL-3.0-only",
+  "author": { "name": "graphicmismatch" }
+}
